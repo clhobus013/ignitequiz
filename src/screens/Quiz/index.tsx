@@ -34,7 +34,7 @@ export function Quiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [quiz, setQuiz] = useState<QuizProps>({} as QuizProps);
   const [alternativeSelected, setAlternativeSelected] = useState<null | number>(null);
-  const [statusReply, setStatusReplay] = useState(0);
+  const [statusReply, setStatusReply] = useState(0);
 
   const shake = useSharedValue(0);
   const scrollY = useSharedValue(0);
@@ -81,10 +81,11 @@ export function Quiz() {
     }
 
     if (quiz.questions[currentQuestion].correct === alternativeSelected) {
-      setStatusReplay(1);
+      setStatusReply(1);
       setPoints(prevState => prevState + 1);
+      handleNextQuestion();
     } else {
-      setStatusReplay(2);
+      setStatusReply(2);
       shakeAnimation();
     }
 
@@ -108,7 +109,15 @@ export function Quiz() {
   }
 
   function shakeAnimation() {
-    shake.value = withSequence(withTiming(3, {duration: 400, easing: Easing.bounce}), withTiming(0));
+    shake.value = withSequence(
+      withTiming(3, { duration: 400, easing: Easing.bounce }), 
+      withTiming(0, undefined, (finished => {
+        'worklet';
+        if(finished) {
+          runOnJS(handleNextQuestion)()
+        }
+      }))
+    )
   }
 
   const shakeStyleAnimated = useAnimatedStyle(() => {
@@ -117,7 +126,7 @@ export function Quiz() {
         {
           translateX: interpolate(
             shake.value, 
-            [0, 0.5, 1, 1.5, 2, 2.5, 3],
+            [0, 0.5, 1, 1.5, 2, 2.5, 0],
             [0, -15, 0, 15, 0, -15, 0],
           ),
         },
@@ -139,7 +148,7 @@ export function Quiz() {
       backgroundColor: THEME.COLORS.GREY_500,
       width: '110%',
       left: '-5%',
-      opacity: interpolate(scrollY.value, [50, 90], [0, 1], Extrapolate.CLAMP),
+      opacity: interpolate(scrollY.value, [50, 90], [0, 10], Extrapolate.CLAMP),
       transform: [
         {translateY: interpolate(scrollY.value, [50, 100], [-40, 0], Extrapolate.CLAMP)}
       ]
@@ -188,11 +197,6 @@ export function Quiz() {
     setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (quiz.questions) {
-      handleNextQuestion();
-    }
-  }, [points]);
 
   if (isLoading) {
     return <Loading />
@@ -226,6 +230,7 @@ export function Quiz() {
               question={quiz.questions[currentQuestion]}
               alternativeSelected={alternativeSelected}
               setAlternativeSelected={setAlternativeSelected}
+              onUnmount={() => setStatusReply(0)}
             />
           </Animated.View>
         </GestureDetector>
