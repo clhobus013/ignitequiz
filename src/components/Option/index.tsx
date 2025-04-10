@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Text, TouchableOpacity, TouchableOpacityProps } from 'react-native';
-import { Canvas, Skia, Path, useValue, runTiming, BlurMask, Circle, Easing } from '@shopify/react-native-skia';
+import { Canvas, Skia, Path, BlurMask, Circle } from '@shopify/react-native-skia';
+import { useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 
 import { styles } from './styles';
 import { THEME } from '../../styles/theme';
@@ -14,8 +15,8 @@ const CHECK_SIZE = 28;
 const CHECK_STROKE = 2;
 
 export function Option({ checked, title, ...rest }: Props) {
-  const percentage = useValue(0);
-  const circle = useValue(0);
+  const percentage = useSharedValue(0);
+  const circle = useSharedValue(0);
 
   const RADIUS = (CHECK_SIZE - CHECK_STROKE) / 2;
   const CENTER_CIRCLE = RADIUS / 2;
@@ -25,11 +26,11 @@ export function Option({ checked, title, ...rest }: Props) {
 
   useEffect(() => {
     if(checked) {
-      runTiming(percentage, 1, {duration: 700});
-      runTiming(circle, CENTER_CIRCLE, {easing: Easing.bounce});
+      percentage.value = withTiming(1, {duration: 700});
+      circle.value = withTiming(CENTER_CIRCLE, {easing: Easing.bounce});
     } else {
-      runTiming(percentage, 0, {duration: 700});
-      runTiming(circle, 0, {duration: 300});
+      percentage.value = withTiming(0, {duration: 700});
+      circle.value = withTiming(0, {duration: 300});
     }
   }, [checked]);
 
