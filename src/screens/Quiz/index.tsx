@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, Text, View, BackHandler } from 'react-native';
 
 import Animated, { Easing, Extrapolate, interpolate, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -212,6 +212,11 @@ export function Quiz() {
     setIsLoading(false);
   }, []);
 
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleStop);
+
+    return () => backHandler.remove();
+  }, [])
 
   if (isLoading) {
     return <Loading />
