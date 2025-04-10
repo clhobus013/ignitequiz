@@ -3,9 +3,12 @@ import { Alert, Text, View } from 'react-native';
 
 import Animated, { Easing, Extrapolate, interpolate, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import * as Haptics from 'expo-haptics';
 
 import { styles } from './styles';
 import { THEME } from '../../styles/theme';
+import { Audio } from 'expo-av';
 
 import { QUIZ } from '../../data/quiz';
 import { historyAdd } from '../../storage/quizHistoryStorage';
@@ -16,9 +19,7 @@ import { QuizHeader } from '../../components/QuizHeader';
 import { ConfirmButton } from '../../components/ConfirmButton';
 import { OutlineButton } from '../../components/OutlineButton';
 import { ProgressBar } from '../../components/ProgressBar';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { OverlayFeedback } from '../../components/OverlayFeedback';
-import { Audio } from 'expo-av';
 
 interface Params {
   id: string;
@@ -120,7 +121,9 @@ export function Quiz() {
     return true;
   }
 
-  function shakeAnimation() {
+  async function shakeAnimation() {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
     shake.value = withSequence(
       withTiming(3, { duration: 400, easing: Easing.bounce }), 
       withTiming(0, undefined, (finished => {
